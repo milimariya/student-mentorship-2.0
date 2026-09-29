@@ -37,6 +37,17 @@ const Goals = () => {
     }
   };
 
+  const handleStatusChange = async (goalId, status) => {
+    try {
+      const response = await api.put(`/goals/${goalId}`, { status });
+      setGoals((currentGoals) => currentGoals.map((goal) => (
+        goal._id === goalId ? response.data : goal
+      )));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Unable to update goal status');
+    }
+  };
+
   return (
     <div className="dashboard-grid">
       <Card title="Create Goal" size="lg">
@@ -74,7 +85,18 @@ const Goals = () => {
               <div key={goal._id} className="list-item">
                 <strong>{goal.title}</strong>
                 <p>{goal.description}</p>
-                <span className="badge">{goal.status}</span>
+                <div className="goal-status-control">
+                  <label htmlFor={`goal-status-${goal._id}`}>Status</label>
+                  <select
+                    id={`goal-status-${goal._id}`}
+                    value={goal.status}
+                    onChange={(event) => handleStatusChange(goal._id, event.target.value)}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
               </div>
             ))
           ) : (

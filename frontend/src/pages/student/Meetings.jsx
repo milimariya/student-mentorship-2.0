@@ -27,6 +27,7 @@ const Meetings = () => {
         {meetings.length > 0 ? meetings.map((meeting) => (
           <div key={meeting._id} className="list-item">
             <strong>{new Date(meeting.date).toLocaleDateString()}</strong>
+            <p>Time: {meeting.time}</p>
             <p>{meeting.type} meeting</p>
             <p>Status: <span className="badge">{meeting.status}</span></p>
             <p>Agenda: {meeting.agenda || 'General discussion'}</p>

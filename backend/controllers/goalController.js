@@ -39,12 +39,22 @@ const getGoalsByStudent = async (req, res) => {
 
 const updateGoal = async (req, res) => {
   try {
-    const goal = await Goal.findById(req.params.id);
+    const { status } = req.body;
+    if (!['pending', 'active', 'completed'].includes(status)) {
+      return res.status(400).json({ message: 'A valid goal status is required' });
+    }
+
+    const student = await Student.findOne({ user: req.user._id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found' });
+    }
+
+    const goal = await Goal.findOne({ _id: req.params.id, student: student._id });
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }
 
-    Object.assign(goal, req.body);
+    goal.status = status;
     await goal.save();
 
     res.status(200).json(goal);

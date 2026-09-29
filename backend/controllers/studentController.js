@@ -54,12 +54,15 @@ const getAssignedMentor = async (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
-    const student = await Student.findOne({ user: req.user._id }).populate('mentor');
+    const student = await Student.findOne({ user: req.user._id }).populate({
+      path: 'mentor',
+      populate: { path: 'user' },
+    });
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    const activeGoals = await Goal.countDocuments({ student: student._id, status: { $ne: 'completed' } });
+    const activeGoals = await Goal.countDocuments({ student: student._id, status: 'active' });
     const upcomingMeetings = await Meeting.countDocuments({ student: student._id, status: { $in: ['requested', 'scheduled'] } });
     const pendingConcerns = await Concern.countDocuments({ student: student._id, status: { $ne: 'resolved' } });
 

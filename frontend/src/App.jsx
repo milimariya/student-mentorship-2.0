@@ -20,10 +20,8 @@ import StudentDetails from './pages/mentor/StudentDetails';
 import MentorMeetings from './pages/mentor/Meetings';
 import MentorFeedback from './pages/mentor/Feedback';
 
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ManageStudents from './pages/admin/ManageStudents';
-import ManageMentors from './pages/admin/ManageMentors';
-import AssignMentors from './pages/admin/AssignMentors';
+const dashboardPath = (role) =>
+  role === 'student' || role === 'mentor' ? `/${role}/dashboard` : '/login';
 
 const DashboardLayout = ({ role, children }) => (
   <div className="app-shell">
@@ -39,7 +37,7 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to={user ? `/${user.role}/dashboard` : '/login'} replace />} />
+        <Route path="/" element={<Navigate to={user ? dashboardPath(user.role) : '/login'} replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
@@ -163,48 +161,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <DashboardLayout role="admin">
-                <AdminDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/students"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <DashboardLayout role="admin">
-                <ManageStudents />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/mentors"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <DashboardLayout role="admin">
-                <ManageMentors />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/assign-ment"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <DashboardLayout role="admin">
-                <AssignMentors />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="*" element={<Navigate to={user ? `/${user.role}/dashboard` : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={user ? dashboardPath(user.role) : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
   );

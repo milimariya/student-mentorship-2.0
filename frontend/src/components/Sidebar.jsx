@@ -17,12 +17,6 @@ const Sidebar = ({ role }) => {
       { label: 'Meetings', to: '/mentor/meetings' },
       { label: 'Feedback', to: '/mentor/feedback' },
     ],
-    admin: [
-      { label: 'Dashboard', to: '/admin/dashboard' },
-      { label: 'Students', to: '/admin/students' },
-      { label: 'Mentors', to: '/admin/mentors' },
-      { label: 'Assign Mentors', to: '/admin/assign-ment' },
-    ],
   };
 
   return (

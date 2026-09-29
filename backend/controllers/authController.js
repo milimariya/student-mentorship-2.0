@@ -12,45 +12,71 @@ const generateToken = (id, role) => {
 
 const registerUser = async (req, res) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: 'Registration is unavailable because JWT_SECRET is not configured',
+      });
+    }
+
     const { name, email, password, role, department, expertise, phone, bio, year } = req.body;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: 'Name, email, password and role are required' });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (!['student', 'mentor'].includes(role)) {
+      return res.status(400).json({ message: 'Role must be student or mentor' });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    let user = existingUser;
+
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email' });
-    }
+      const passwordMatches = await bcrypt.compare(password, existingUser.password);
+      const existingProfile = role === 'student'
+        ? await Student.findOne({ user: existingUser._id })
+        : await Mentor.findOne({ user: existingUser._id });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+      if (existingUser.role !== role || !passwordMatches || existingProfile) {
+        return res.status(400).json({ message: 'User already exists with this email' });
+      }
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      role,
-    });
-
-    if (role === 'student') {
-      await Student.create({
-        user: user._id,
-        department: department || '',
-        year: year || '',
-        phone: phone || '',
-        bio: bio || '',
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role,
       });
     }
 
-    if (role === 'mentor') {
-      await Mentor.create({
-        user: user._id,
-        expertise: expertise || '',
-        department: department || '',
-        phone: phone || '',
-        bio: bio || '',
-      });
+    try {
+      if (role === 'student') {
+        await Student.create({
+          user: user._id,
+          department: department || '',
+          year: year || '',
+          phone: phone || '',
+          bio: bio || '',
+        });
+      }
+
+      if (role === 'mentor') {
+        await Mentor.create({
+          user: user._id,
+          expertise: expertise || '',
+          department: department || '',
+          phone: phone || '',
+          bio: bio || '',
+        });
+      }
+    } catch (error) {
+      if (!existingUser) {
+        await User.deleteOne({ _id: user._id });
+      }
+      throw error;
     }
 
     const token = generateToken(user._id, user.role);
@@ -86,6 +112,10 @@ const loginUser = async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    if (!['student', 'mentor'].includes(user.role)) {
+      return res.status(403).json({ message: 'This account role is no longer supported' });
     }
 
     const token = generateToken(user._id, user.role);

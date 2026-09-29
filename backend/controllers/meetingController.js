@@ -4,17 +4,42 @@ const Mentor = require('../models/Mentor');
 
 const createMeeting = async (req, res) => {
   try {
-    const { studentId, mentorId, date, time, type, agenda, status } = req.body;
+    const { studentId, mentorId, date, time, type, agenda } = req.body;
 
-    if (!studentId || !mentorId || !date || !time) {
-      return res.status(400).json({ message: 'Student, mentor, date and time are required' });
+    if (!studentId || !date || !time) {
+      return res.status(400).json({ message: 'Student, date and time are required' });
     }
 
-    const student = await Student.findById(studentId);
-    const mentor = await Mentor.findById(mentorId);
+    let student;
+    let mentor;
+    let status;
 
-    if (!student || !mentor) {
-      return res.status(404).json({ message: 'Student or mentor not found' });
+    if (req.user.role === 'mentor') {
+      mentor = await Mentor.findOne({ user: req.user._id });
+      if (!mentor) {
+        return res.status(404).json({ message: 'Mentor profile not found' });
+      }
+
+      student = await Student.findOne({ _id: studentId, mentor: mentor._id });
+      if (!student) {
+        return res.status(403).json({ message: 'You can only schedule meetings with your assigned students' });
+      }
+      status = 'scheduled';
+    } else {
+      student = await Student.findOne({ _id: studentId, user: req.user._id });
+      if (!student) {
+        return res.status(403).json({ message: 'You can only request meetings for your own profile' });
+      }
+
+      if (!student.mentor) {
+        return res.status(400).json({ message: 'A mentor must be assigned before requesting a meeting' });
+      }
+
+      mentor = await Mentor.findById(student.mentor);
+      if (!mentor || (mentorId && mentor._id.toString() !== mentorId)) {
+        return res.status(400).json({ message: 'The selected mentor is not assigned to you' });
+      }
+      status = 'requested';
     }
 
     const meeting = await Meeting.create({
@@ -24,17 +49,34 @@ const createMeeting = async (req, res) => {
       time,
       type: type || 'academic',
       agenda: agenda || '',
-      status: status || 'requested',
+      status,
     });
 
     req.app.get('io').to(`user-${student.user.toString()}`).emit('newNotification', {
-      message: 'A mentor meeting has been requested',
+      message: status === 'scheduled' ? 'Your mentor scheduled a meeting with you' : 'A mentor meeting has been requested',
       type: 'meeting',
     });
 
     res.status(201).json(meeting);
   } catch (error) {
     res.status(500).json({ message: 'Failed to create meeting', error: error.message });
+  }
+};
+
+const getMentorMeetings = async (req, res) => {
+  try {
+    const mentor = await Mentor.findOne({ user: req.user._id });
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    const meetings = await Meeting.find({ mentor: mentor._id })
+      .populate({ path: 'student', populate: { path: 'user' } })
+      .sort({ date: 1, time: 1 });
+
+    res.status(200).json(meetings);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch mentor meetings', error: error.message });
   }
 };
 
@@ -79,6 +121,7 @@ const deleteMeeting = async (req, res) => {
 
 module.exports = {
   createMeeting,
+  getMentorMeetings,
   getMeetingsByStudent,
   updateMeeting,
   deleteMeeting,

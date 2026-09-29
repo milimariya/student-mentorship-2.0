@@ -13,6 +13,7 @@ const Signup = () => {
     password: '',
     role: 'student',
     department: '',
+    year: '',
     expertise: '',
     bio: '',
   });
@@ -32,7 +33,14 @@ const Signup = () => {
       const response = await signup(form);
       navigate(`/${response.user.role}/dashboard`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      const responseError = err.response?.data;
+      const message = responseError?.message;
+      const details = responseError?.error;
+      setError(
+        message === 'Registration failed' && details
+          ? `${message}: ${details}`
+          : message || details || 'Signup failed'
+      );
     } finally {
       setLoading(false);
     }

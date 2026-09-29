@@ -49,18 +49,27 @@ const getConcernsByStudent = async (req, res) => {
 
 const updateConcern = async (req, res) => {
   try {
-    const concern = await Concern.findById(req.params.id);
+    const mentor = await Mentor.findOne({ user: req.user._id });
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    const concern = await Concern.findOne({ _id: req.params.id, mentor: mentor._id });
     if (!concern) {
       return res.status(404).json({ message: 'Concern not found' });
     }
 
-    const mentor = await Mentor.findOne({ user: req.user._id });
-    if (mentor && concern.mentor.toString() !== mentor._id.toString()) {
-      return res.status(403).json({ message: 'Only the assigned mentor can respond to this concern' });
+    const { response, status } = req.body;
+    if (status !== undefined && !['open', 'active', 'resolved'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid concern status' });
     }
 
-    concern.response = req.body.response || concern.response;
-    concern.status = req.body.status || concern.status;
+    if (response !== undefined) {
+      concern.response = response;
+    }
+    if (status !== undefined) {
+      concern.status = status;
+    }
     await concern.save();
 
     req.app.get('io').to(`user-${concern.student.toString()}`).emit('newNotification', {
