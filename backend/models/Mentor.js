@@ -28,6 +28,10 @@ const mentorSchema = new mongoose.Schema(
       type: String,
       default: 'Available',
     },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

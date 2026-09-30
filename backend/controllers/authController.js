@@ -24,8 +24,8 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Name, email, password and role are required' });
     }
 
-    if (!['student', 'mentor'].includes(role)) {
-      return res.status(400).json({ message: 'Role must be student or mentor' });
+    if (!['student', 'mentor', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Role must be student, mentor, or admin' });
     }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() }).select('+password');
@@ -70,6 +70,7 @@ const registerUser = async (req, res) => {
           department: department || '',
           phone: phone || '',
           bio: bio || '',
+          isApproved: false,
         });
       }
     } catch (error) {
@@ -114,7 +115,18 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    if (!['student', 'mentor'].includes(user.role)) {
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Your account has been deactivated by the admin' });
+    }
+
+    if (user.role === 'mentor') {
+      const mentorProfile = await Mentor.findOne({ user: user._id });
+      if (!mentorProfile || !mentorProfile.isApproved) {
+        return res.status(403).json({ message: 'Your mentor account is pending admin approval' });
+      }
+    }
+
+    if (!['student', 'mentor', 'admin'].includes(user.role)) {
       return res.status(403).json({ message: 'This account role is no longer supported' });
     }
 
@@ -145,6 +157,10 @@ const getMe = async (req, res) => {
 
     if (user.role === 'mentor') {
       profile = await Mentor.findOne({ user: user._id });
+    }
+
+    if (user.role === 'admin') {
+      profile = { role: 'admin', permissions: ['manage_users', 'view_dashboard'] };
     }
 
     res.status(200).json({

@@ -10,6 +10,8 @@ const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const mentorRoutes = require('./routes/mentorRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const concernRoutes = require('./routes/concernRoutes');
@@ -53,6 +55,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/mentors', mentorRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/announcements', announcementRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/concerns', concernRoutes);

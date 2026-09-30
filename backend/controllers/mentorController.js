@@ -5,6 +5,23 @@ const Concern = require('../models/Concern');
 const Meeting = require('../models/Meeting');
 const Feedback = require('../models/Feedback');
 
+const updateMentorProfile = async (req, res) => {
+  try {
+    const mentor = await Mentor.findOne({ user: req.user._id });
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    const { expertise, department, phone, bio, availability } = req.body;
+    Object.assign(mentor, { expertise, department, phone, bio, availability });
+    await mentor.save();
+
+    res.status(200).json(mentor);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update profile', error: error.message });
+  }
+};
+
 const getDashboard = async (req, res) => {
   try {
     const mentor = await Mentor.findOne({ user: req.user._id });
@@ -116,6 +133,7 @@ const assignStudentToMentor = async (req, res) => {
 };
 
 module.exports = {
+  updateMentorProfile,
   getDashboard,
   getAssignedStudents,
   getStudentDetails,

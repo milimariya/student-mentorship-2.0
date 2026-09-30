@@ -62,6 +62,7 @@ const Signup = () => {
               <select id="role" name="role" value={form.role} onChange={handleChange}>
                 <option value="student">Student</option>
                 <option value="mentor">Mentor</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           </div>

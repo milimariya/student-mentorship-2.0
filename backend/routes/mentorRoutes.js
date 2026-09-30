@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+  updateMentorProfile,
   getDashboard,
   getAssignedStudents,
   getStudentDetails,
@@ -10,6 +11,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+router.put('/profile', protect, authorize('mentor'), updateMentorProfile);
 router.get('/dashboard', protect, authorize('mentor'), getDashboard);
 router.get('/students', protect, authorize('mentor'), getAssignedStudents);
 router.get('/available-students', protect, authorize('mentor'), getAvailableStudents);

@@ -13,9 +13,17 @@ const Sidebar = ({ role }) => {
     ],
     mentor: [
       { label: 'Dashboard', to: '/mentor/dashboard' },
+      { label: 'Profile', to: '/mentor/profile' },
       { label: 'My Students', to: '/mentor/students' },
       { label: 'Meetings', to: '/mentor/meetings' },
       { label: 'Feedback', to: '/mentor/feedback' },
+    ],
+    admin: [
+      { label: 'Dashboard', to: '/admin/dashboard' },
+      { label: 'Users Management', to: '/admin/users' },
+      { label: 'Mentor Approval', to: '/admin/mentors' },
+      { label: 'Assignments', to: '/admin/assignments' },
+      { label: 'Announcements', to: '/admin/announcements' },
     ],
   };
 

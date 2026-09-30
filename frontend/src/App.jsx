@@ -15,13 +15,19 @@ import Meetings from './pages/student/Meetings';
 import Feedback from './pages/student/Feedback';
 
 import MentorDashboard from './pages/mentor/MentorDashboard';
+import MentorProfile from './pages/mentor/MentorProfile';
 import MyStudents from './pages/mentor/MyStudents';
 import StudentDetails from './pages/mentor/StudentDetails';
 import MentorMeetings from './pages/mentor/Meetings';
 import MentorFeedback from './pages/mentor/Feedback';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminMentors from './pages/admin/AdminMentors';
+import AdminAssignments from './pages/admin/AdminAssignments';
+import AdminAnnouncements from './pages/admin/AdminAnnouncements';
 
 const dashboardPath = (role) =>
-  role === 'student' || role === 'mentor' ? `/${role}/dashboard` : '/login';
+  role === 'student' || role === 'mentor' || role === 'admin' ? `/${role}/dashboard` : '/login';
 
 const DashboardLayout = ({ role, children }) => (
   <div className="app-shell">
@@ -122,6 +128,16 @@ function App() {
           }
         />
         <Route
+          path="/mentor/profile"
+          element={
+            <ProtectedRoute allowedRoles={['mentor']}>
+              <DashboardLayout role="mentor">
+                <MentorProfile />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/mentor/students"
           element={
             <ProtectedRoute allowedRoles={['mentor']}>
@@ -157,6 +173,56 @@ function App() {
             <ProtectedRoute allowedRoles={['mentor']}>
               <DashboardLayout role="mentor">
                 <MentorFeedback />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminUsers />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/mentors"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminMentors />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/assignments"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminAssignments />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/announcements"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminAnnouncements />
               </DashboardLayout>
             </ProtectedRoute>
           }
